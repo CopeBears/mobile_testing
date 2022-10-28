@@ -1,0 +1,1407 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>ETH Invaders</title>
+
+    <style>
+        body {
+          margin: 0;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background-color: black;
+          font-family: sans-serif;
+          font-size: 14px;
+        }
+      </style>
+</head>
+
+<body>
+  <div style="position: relative" id="parentDiv" >
+    <p
+      id="scoreContainer"
+      style="
+        position: absolute;
+        z-index: 10;
+        color: white;
+        left: 10px;
+        top: 10px;
+        margin: 0;
+        display: none;
+      "
+    >
+      <span>Score:</span> <span id="scoreEl">0</span>
+    </p>
+
+    <canvas></canvas>
+    <!-- background container -->
+    <div
+      id="startScreen"
+      style="
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: url('https://raw.githubusercontent.com/CopeBears/testupload/main/random/resizedbg.png');
+        z-index: 20;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      "
+    >
+      <div style="text-align: center">
+        <h1 style="color: rgb(228, 171, 48); font-family:'Courier New', Courier, monospace">ETHinvaders</h1>
+  
+        <!-- button -->
+        <div
+          id="spaceInvaders"
+          style="cursor: pointer; position: relative; display: inline-block"
+          margin-bottom=100px
+        >
+          <img src="https://raw.githubusercontent.com/CopeBears/testupload/main/random/button.png" alt="Start Button" />
+          <span
+            style="
+              position: absolute;
+              color: white;
+              top: 50%;
+              transform: translate(-50%, -50%);
+              left: 50%;
+              font-family:'Courier New', Courier, monospace;
+            "
+            >Start</span
+          >
+        </div>
+      </div>
+    </div>
+    <!-- restart screen -->
+    <!-- background container -->
+    <div
+      id="restartScreen"
+      style="
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: url('https://raw.githubusercontent.com/CopeBears/testupload/main/random/resizedbg.png');
+        z-index: 20;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      "
+    >
+      <div style="text-align: center">
+        <h1 style="color: white">Game Over</h1>
+  
+        <!-- button -->
+        <div
+          id="restartButton"
+          style="cursor: pointer; position: relative; display: inline-block"
+        >
+          <img src="https://raw.githubusercontent.com/CopeBears/testupload/main/random/button.png" alt="Restart Button" />
+          <span
+            style="
+              position: absolute;
+              color: white;
+              top: 50%;
+              transform: translate(-50%, -50%);
+              left: 50%;
+            "
+            >Restart</span
+          >
+        </div>
+      </div>
+    </div>
+
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"
+      integrity="sha512-H6cPm97FAsgIKmlBA4s774vqoN24V5gSQL4yBTDOY2su2DeXZVhQPxFK4P6GPdnZqM9fg1G3cMv5wD7e6cFLZQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"
+      integrity="sha512-6+YN/9o9BWrk6wSfGxQGpt3EUK6XeHi6yeHV+TYD2GR0Sj/cggRpXr1BrAQf0as6XslxomMUxXp2vIl+fv0QRA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+
+    <script>
+        const scoreEl = document.querySelector("#scoreEl")
+        const canvas = document.querySelector("canvas")
+        const c = canvas.getContext('2d')
+        const ctx = canvas.getContext('2d')
+        
+        canvas.width = window.innerWidth
+        canvas.height = window.innerHeight
+        
+        if (canvas.width > 1024 / .6) {
+            canvas.width = 1024 /.6
+        }
+        if (canvas.height > 576 / .6) {
+            canvas.height = 576 / .6
+        }
+
+        // canvas.width = 1920 
+        // canvas.height = 1080 
+        // canvas.width = 1024 
+        // canvas.height = 576  
+
+
+        defaultWidth = 1024
+        defaultHeight = 576
+
+        scalingRatioWidth = defaultWidth / canvas.width
+        scalingRatioHeight =  defaultHeight / canvas.height
+        widthCapped = scalingRatioWidth
+        heightCapped = scalingRatioHeight
+
+        if (scalingRatioWidth<1) {
+            widthCapped = 1
+        }
+        if (scalingRatioHeight<1) {
+            heightCapped = 1
+        }
+
+        planetNumbers = Math.floor((Math.random() * 78)) + 1
+        planet2Numbers = Math.floor((Math.random() * 78)) + 1
+
+        backgroundNumbers = Math.floor(Math.random() * 70) + 1
+        backgroundMusic = Math.floor(Math.random() * 8) + 1
+
+        randomPlanetSize = ((Math.random() * 100) + 150) / scalingRatioWidth
+        randomPlanetSize2 = ((Math.random() * 100) + 150) / scalingRatioWidth
+
+        planetChance = Math.floor(Math.random() * 10)
+
+        randomWidth = (Math.random() * canvas.width*.8) 
+        randomHeight = (Math.random() * canvas.height*.8) 
+
+        randomWidth2 = (Math.random() * canvas.width*.6) 
+        randomHeight2 = (Math.random() * canvas.height*.6) 
+
+        planet1Active = false
+        planet2Active = false
+
+        const bgplanet = new Image();
+        const bgplanet2 = new Image();
+
+        if (planetChance <= 80) 
+            planet1Active = true
+            
+        if (planetChance <= 20) 
+            planet2Active = true
+
+        bgplanet2.src = 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/planets/planet' + planetNumbers + '.png' 
+        bgplanet.src = 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/planets/planet' + planet2Numbers + '.png' 
+
+
+        const bgimg = new Image();
+        bgimg.src = 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/backgrounds/spacebg' + backgroundNumbers + '.png';
+
+
+
+        Howler.volume(0.5)
+        const audio = {
+            backgroundMusic: new Howl({
+              src: 'https://github.com/ETHinvaders/ETHinvader_Files/blob/main/audio/ETHinvaderOST/track' + backgroundMusic + '.mp3?raw=true',
+              loop: true
+            }),
+
+
+            bomb: new Howl({
+              src: 'https://github.com/ETHinvaders/ETHinvader_Files/blob/main/audio/bomb.mp3?raw=true'
+            }),
+
+            bonus: new Howl({
+              src: 'https://github.com/ETHinvaders/ETHinvader_Files/blob/main/audio/bonus.mp3?raw=true',
+              volume: 0.8
+            }),
+            enemyShoot: new Howl({
+              src: 'https://github.com/ETHinvaders/ETHinvader_Files/blob/main/audio/enemyShoot.wav?raw=true'
+            }),
+            explode: new Howl({
+              src: 'https://github.com/ETHinvaders/ETHinvader_Files/blob/main/audio/explode.wav?raw=true'
+            }),
+            gameOver: new Howl({
+              src: 'https://github.com/ETHinvaders/ETHinvader_Files/blob/main/audio/gameOver.mp3?raw=true'
+            }),
+            select: new Howl({
+              src: 'https://github.com/ETHinvaders/ETHinvader_Files/blob/main/audio/select.mp3?raw=true'
+            }),
+            shoot: new Howl({
+              src: 'https://github.com/ETHinvaders/ETHinvader_Files/blob/main/audio/shoot.wav?raw=true',
+              volume: .5
+            }),
+            start: new Howl({
+              src: 'https://github.com/ETHinvaders/ETHinvader_Files/blob/main/audio/start.mp3?raw=true'
+            })
+          }
+
+
+        class Player {
+            constructor() {
+
+                this.velocity = {
+                    x: 0,
+                    y: 0
+                }
+
+                this.rotation = 0
+                this.opacity = 1
+                this.powerUp = ''
+                const image = new Image()
+                image.src = 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/invaders/spaceship.png'
+                image.onload = () => {
+                    const scale = .3 / widthCapped
+                    this.image = image
+                    this.width = image.width * scale
+                    this.height = image.height * scale
+                    this.position = {
+                        x: canvas.width / 2 - this.width /2,
+                        y: canvas.height - this.height - 20
+                    }
+                }
+
+                this.particles = []
+                this.frames = 0
+
+            }
+
+            draw() {
+                c.save()
+                c.globalAlpha = this.opacity
+                c.translate(player.position.x + player.width/2, 
+                player.position.y + player.height/2)
+                
+                c.rotate(this.rotation)
+
+                c.translate(-player.position.x + -player.width/2, 
+                -player.position.y + -player.height/2)
+
+                if (this.image)
+                    c.drawImage(
+                        this.image, 
+                        this.position.x, 
+                        this.position.y, 
+                        this.width, 
+                        this.height)
+                c.restore()
+            }
+
+
+            update() {
+                if (this.image) {
+                    this.draw()
+                    this.position.x += this.velocity.x
+                }
+
+                this.frames++
+                if (this.frames % 10 == 0) {
+                    this.particles.push(new Particle({
+                        position: {
+                            x: this.position.x + this.width/2,
+                            y: this.position.y + this.height
+                        },
+                        velocity: {
+                            x: 0,
+                            y: .4
+                        },
+                        radius: Math.random() * 2,
+                        color: 'white',
+                        fades: true
+                        }))
+                }
+            }
+        }
+
+        class Projectile {
+            constructor({position, velocity, color='red'}) {
+                this.position = position
+                this.velocity = velocity
+                this.color = color
+                this.radius = 5 / scalingRatioWidth
+            }
+
+            draw() {
+                c.beginPath()
+                c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2)
+                c.fillStyle = this.color
+                c.fill()
+                c.closePath()
+            }   
+
+            update() {
+                    this.draw()
+                    this.position.x += this.velocity.x * (widthCapped*.8)
+                    this.position.y += this.velocity.y * (widthCapped*.8)
+            }        
+        }
+
+
+        class Particle {
+            constructor({position, velocity, radius, color, fades}) {
+                this.position = position
+                this.velocity = velocity
+
+                this.radius = radius / scalingRatioWidth
+                this.color = color
+                this.opacity = 1
+                this.fades = fades
+            }
+
+            draw() {
+                c.save()
+                c.globalAlpha = this.opacity
+                c.beginPath()
+                c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2)
+                c.fillStyle = this.color
+                c.fill()
+                c.closePath()
+                c.restore()
+            }   
+
+            update() {
+                    this.draw()
+                    this.position.x += this.velocity.x
+                    this.position.y += this.velocity.y
+                    
+                    if (this.fades) {
+                        this.opacity  -= 0.01
+                    }
+            }        
+        }
+
+        class InvaderProjectile {
+            constructor({position, velocity}) {
+                this.position = position
+                this.velocity = velocity
+
+                this.width = 5 / scalingRatioWidth
+                this.height = 15 / scalingRatioHeight
+            }
+
+            draw() {
+                c.fillStyle = '#FCB226'
+                c.fillRect(this.position.x, this.position.y, this.width, this.height)
+            }   
+
+            update() {
+                    this.draw()
+                    this.position.x += this.velocity.x
+                    this.position.y += this.velocity.y
+            }        
+        }
+
+
+        class Invader {
+            constructor({position = {x: 0, y: 0}, src, hp = 1, scale = 1}) {
+
+                this.velocity = {
+                    x: 0,
+                    y: 0
+                }
+
+                this.src = src
+                this.hp = hp
+
+                const image = new Image()
+                image.src = src
+                image.onload = () => {
+                    this.scale = scale / (scalingRatioWidth/2)
+                    this.image = image
+                    this.width = image.width * scale / scalingRatioWidth
+                    this.height = image.height * scale / scalingRatioWidth
+                    this.position = {
+                        x: position.x,
+                        y: position.y
+                    }
+                }
+            }
+
+            draw() {
+
+                if (this.image)
+                    c.drawImage(
+                        this.image, 
+                        this.position.x, 
+                        this.position.y, 
+                        this.width, 
+                        this.height)
+            }
+
+
+            update({velocity}) {
+                if (this.image) {
+                    this.draw()
+                    this.position.x += velocity.x
+                    this.position.y += velocity.y
+                }
+            }
+
+            shoot(invaderProjectiles) {
+                invaderProjectiles.push(new InvaderProjectile({
+                    position: {
+                        x: this.position.x + this.width/2,
+                        y: this.position.y + this.height
+                    },
+                    velocity: {
+                        x: 0,
+                        y: 5 / scalingRatioWidth
+                    }
+                }))
+            }
+        }
+
+        class Grid {
+            constructor() {
+                this.position = {
+                    x: 0,
+                    y: 200
+                }
+                this.velocity = {
+                    x: 2,
+                    y: 0
+                }
+                this.invaders = []
+
+                const columns = Math.floor(Math.random() * 6 + 3)
+                const rows = Math.floor(Math.random() * 4 + 2)
+                bossChance = Math.floor(Math.random() * 100 )
+                healthChance = Math.floor(Math.random() * 0 )
+
+                // choose sprite for invader
+                if (rows <= 2) {
+                    temp = 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/invaders/invader01.png'
+                    this.hp = 5
+                    this.velocity.x = 3 / scalingRatioWidth
+                    objectSpace = (35 /widthCapped) + 15
+
+                } else if (columns <= 4) {
+                    temp = 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/invaders/invader02.png'
+                    this.hp = 2
+                    this.velocity.x = 1 / scalingRatioWidth
+                    objectSpace = (50 /widthCapped) + 15
+                }
+                else if (!columns <= 4 && !rows <= 3) {
+                    this.velocity.x = 2 / scalingRatioWidth
+                    temp = 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/invaders/invader.png'
+                    objectSpace = (25 /widthCapped) + 15
+                    if (frames % 2) {
+                        temp = 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/invaders/invader05.png'
+                        objectSpace = (45 /widthCapped) + 15
+                    }
+                }
+
+                
+                this.width = columns * objectSpace / scalingRatioWidth
+
+                // console.log('boss' + bossChance)
+                // console.log('health' + healthChance)
+                if (bossChance <= 92) {
+                    for (let x = 0; x< columns; x++) {
+                        for (let y = 0; y< rows; y++) {
+                            this.invaders.push(new Invader({position: {
+                                x: x * (objectSpace /widthCapped),
+                                y: y * 30 / widthCapped
+                            },
+                            src: temp
+                        }
+                        ))
+                    }
+                    }
+                }   else {
+                    temp = 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/invaders/invader03.png'
+                    this.velocity.x = .65 /scalingRatioWidth
+                    this.invaders.push(new Invader({position: {
+                        x:  0,
+                        y:  0
+                    },
+                    src: temp,
+                    hp: 305,
+                    scale: 1
+                }
+                ))
+                }
+                  
+                if (healthChance >= 6) {
+                    temp = 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/random/healthpack.png'
+                    this.velocity.x = .65 /scalingRatioWidth
+                    this.invaders.push(new Invader({position: {
+                        x:  Math.floor(Math.random() * 800),
+                        y:  Math.floor(Math.random() * 200)
+                    },
+                    src: temp,
+                }
+                ))
+                }
+                objectSpace = 30 / scalingRatioWidth
+            }
+
+
+            update() {
+                this.position.x += this.velocity.x
+                this.position.y += this.velocity.y
+
+                this.velocity.y = 0
+
+                if (this.position.x + this.width >= canvas.width || this.position.x <= 0) {
+                    this.velocity.x = -this.velocity.x
+                    this.velocity.y = 30 /scalingRatioHeight
+                }
+            }
+        }
+
+        class PowerUp {
+            constructor({position, velocity, color='yellow'}) {
+                this.position = position
+                this.velocity = velocity
+                this.color = color
+                this.radius = 25 /scalingRatioWidth
+            }
+
+            draw() {
+                c.beginPath()
+                c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2)
+                c.fillStyle = 'yellow'
+                c.fill()
+                c.closePath()
+            }   
+
+            update() {
+                    this.draw()
+                    this.position.x += this.velocity.x
+                    this.position.y += this.velocity.y
+            }        
+        }
+
+        class Bomb {
+            static radius = 45 /scalingRatioWidth
+            constructor({ position, velocity}) {
+              this.position = position
+              this.velocity = velocity
+              this.radius = 45 /scalingRatioWidth
+              this.color =  'red'
+              this.opacity = 1
+              this.active = false
+          
+              gsap.to(this, {
+                radius: 45 /scalingRatioWidth
+              })
+            }
+          
+            draw() {
+              c.save()
+              c.globalAlpha = this.opacity
+              c.beginPath()
+              c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2)
+              c.closePath()
+              c.fillStyle = this.color
+              c.fill()
+              c.restore()
+            }
+          
+            update() {
+              this.draw()
+              this.position.x += this.velocity.x
+              this.position.y += this.velocity.y
+          
+              if (
+                this.position.x + this.radius + this.velocity.x >= canvas.width ||
+                this.position.x - this.radius + this.velocity.x <= 0
+              ) {
+                this.velocity.x = -this.velocity.x
+              } else if (
+                this.position.y + this.radius + this.velocity.y >= canvas.height ||
+                this.position.y - this.radius + this.velocity.y <= 0
+              )
+                this.velocity.y = -this.velocity.y
+            }
+
+            explode() {
+                audio.bomb.play()
+                this.active = true
+                this.velocity.x = 0
+                this.velocity.y = 0
+                gsap.to(this, {
+                    radius: 200 /scalingRatioWidth,
+                    color: 'white'
+                  })
+              
+                  gsap.to(this, {
+                    delay: 0.1,
+                    opacity: 0,
+                    duration: 0.15
+                  })
+
+            }
+
+          }
+        
+
+
+
+          function init() {
+            Howler.volume(.5)
+            player = new Player()
+            projectiles = []
+            grids = []
+            invaderProjectiles = []
+            particles = []
+            deaths = []
+            powerUps = []
+            keys = {
+            a: {
+                pressed: false
+            },
+            d: {
+                pressed: false
+            },
+            space: {
+                pressed: false
+            }, 
+            p: {
+                pressed: false
+            },
+            m: {
+                pressed: false
+            }
+            }
+
+
+            playerDeaths = 0
+            frames = 0
+            randomInterval = Math.floor(Math.random() * 500 + 500)
+            game = {
+                over: false,
+                active: true
+            }
+            score = 0
+
+            for (let i = 0; i < 100; i++) {
+                particles.push(
+                new Particle({
+                    position: {
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height
+                    },
+                    velocity: {
+                    x: 0,
+                    y: 0.3
+                    },
+                    radius: Math.random() * 2,
+                    color: 'white'
+                })
+                )
+            }
+        }
+
+        let particles = []
+        let bombs = []
+        let frames = 0
+        let randomInterval = Math.floor((Math.random() * 800) + 300)
+        let game = {
+            over: false,
+            active: true
+        }
+
+        let moveLeft = 'false'
+        let moveRight = 'false'
+        let keyPressed = 'false'
+        let muteSound = ''
+
+        let score = 0
+        let temp = ''
+        let particleColor = ''
+        let objectSpace = 30
+        let playerDeaths = 0
+        let bossChance = 0
+        let healthChance = 0
+        let runningRNG = Math.floor(Math.random() * 100000)
+        let paused = 'false'
+        let mouseDown = 'false'
+        
+
+        for (let i = 0; i < 100; i++) {
+            particles.push(new Particle({
+                position: {
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height
+                },
+                velocity: {
+                    x: 0,
+                    y: .4
+                },
+                radius: (Math.random() * .8) /scalingRatioWidth,
+                color: 'white'
+                })
+            )
+        }
+
+
+        function endGame() {
+            console.log('you lose')
+            audio.gameOver.play()
+
+            // Makes player disappear
+            setTimeout(() => {
+                player.opacity = 0
+                game.over = true
+            }, 0)
+
+            // stops game altogether
+            setTimeout(() => {
+                game.active = false
+                document.querySelector('#restartScreen').style.display = 'flex'
+            }, 2000)
+
+            createParticles({
+                object: player,
+                color: 'white',
+                fades: true
+            })
+        
+            setTimeout(() => {
+                Howler.volume(0.0)
+            }, 2500)
+        }
+
+
+        function createParticles({object, color, fades, size = 3}) {
+            for (let i = 0; i < 15; i++) {
+                particles.push(new Particle({
+                    position: {
+                        x: object.position.x + object.width/2,
+                        y: object.position.y + object.height/2
+                    },
+                    velocity: {
+                        x: (Math.random() - 0.5) * 2,
+                        y: (Math.random() - 0.5) * 2
+                    },
+                    radius: (Math.random() * size) /scalingRatioWidth,
+                    color: color || '#BAA0DE',
+                    fades: true,
+                    })
+                )
+                }
+        }
+
+        function animate() {
+            if (!game.active) return
+
+            requestAnimationFrame(animate)
+
+
+
+
+            c.drawImage(bgimg, 0, 0, bgimg.width/widthCapped, bgimg.height/heightCapped, 0, 0, canvas.width, canvas.height)
+
+
+/*             c.fillStyle = 'green'
+            c.fillRect(0, 0, canvas.width/5, canvas.height)
+            c.fillStyle = 'green'
+            c.fillRect(canvas.width, 0, -canvas.width/5, canvas.height) */
+
+
+            // RENDERS PLANETS
+            if (planet1Active) {
+                c.drawImage(bgplanet, randomWidth, randomHeight, randomPlanetSize, randomPlanetSize) 
+            } 
+
+            if (planet2Active) {
+                c.drawImage(bgplanet2, randomWidth2, randomHeight2, randomPlanetSize2, randomPlanetSize2) 
+            } 
+
+            // healthbar
+            currentHealth = (((canvas.width/6)  * scalingRatioWidth) - playerDeaths*3.35)
+
+            if (playerDeaths < 15 && !game.over) {
+                c.fillStyle = 'green'
+                c.fillRect(canvas.width - 180, canvas.height - 40, currentHealth, canvas.height/30)
+            } else if (playerDeaths < 35 && !game.over) {
+                c.fillStyle = 'yellow'
+                c.fillRect(canvas.width - 180, canvas.height - 40, currentHealth, canvas.height/30)
+            } else if (playerDeaths <= 50 && !game.over) {
+                c.fillStyle = 'red'
+                c.fillRect(canvas.width - 180, canvas.height - 40, currentHealth, canvas.height/30)
+            }
+
+
+
+            // spawns bombs
+            if (runningRNG < 90000 && runningRNG > 89950 && bombs.length < 2) {
+                bombs.push(
+                  new Bomb({
+                    position: {
+                      x: Math.random() *  canvas.width,
+                      y: Math.random() *  canvas.height/1.5
+                    },
+                    velocity: {
+                      x: (Math.random() - 0.5) * (6 / scalingRatioWidth),
+                      y: (Math.random() - 0.5) * (6 / scalingRatioWidth)
+                    }
+                  })
+                )
+            }
+
+            // update() renders bombs to screen
+            for (let i = bombs.length - 1; i >= 0; i--) {
+                const bomb = bombs[i]
+                
+                if (bomb.opacity <= 0) {
+                  bombs.splice(i, 1)
+                } else bomb.update()
+            }
+
+            
+            
+            for (let i = powerUps.length - 1; i >= 0; i--){
+                const powerUp = powerUps[i]
+
+                if (powerUp.position.x - powerUp.radius >= canvas.width)
+                    powerUps.splice(i,1)
+                if (powerUp.position.y + powerUp.radius >= canvas.height)
+                    powerUps.splice(i,1)
+                if (powerUp.position.y <= 0)
+                    powerUps.splice(i,1)
+                else
+                    powerUp.update()
+
+        
+            }
+
+            // gives trailing particle effect for player spaceship
+            player.update()
+            for (let i = player.particles.length - 1; i >= 0; i--){
+                const particle = player.particles[i]
+                particle.update()
+            }
+
+
+            // update() renders all particles
+            particles.forEach((particle, i) => {
+
+                if (particle.position.y - particle.radius >= canvas.height) {
+                    particle.position.x = Math.random() * canvas.width
+                    particle.position.y = -particle.radius
+                }
+
+                if (particle.opacity <= 0) {
+                    setTimeout(() => {
+                        particles.splice(i,1)
+                    }, 0)
+                } else {
+                    particle.update()
+                }
+            })
+
+
+            // loop through projectiles to detect for collision
+            invaderProjectiles.forEach((invaderProjectile, index) => {
+                if (invaderProjectile.position.y + invaderProjectile.height >= canvas.height) {
+                    setTimeout(() => {
+                        invaderProjectiles.splice(index, 1)
+                    }, 0)          
+                }   else  invaderProjectile.update()
+
+                // projectile hits player
+                if (invaderProjectile.position.y + invaderProjectile.height >= player.position.y
+                    && invaderProjectile.position.x + invaderProjectile.width >= player.position.x
+                    && invaderProjectile.position.x <= player.position.x + player.width) {
+                        
+                        createParticles({
+                            object: player,
+                            color: 'white',
+                            fades: true
+                        })
+
+                        if (player.powerUp != 'MachineGun'){
+                            playerDeaths += 15
+                        }
+
+                        audio.explode.play()
+                        invaderProjectiles.splice(index, 1)
+
+                        if (playerDeaths >=  50) {
+                            console.log('you lose')
+                            endGame()
+  
+                        }
+                }
+            })
+
+
+            projectiles.forEach((projectile, index) => {
+
+
+                // if projectile touches bomb, remove projectile
+                for (let k = bombs.length - 1; k >= 0; k--) {
+                    const bomb = bombs[k]
+                        
+                    if (
+                        Math.hypot(
+                        projectile.position.x - bomb.position.x,
+                        projectile.position.y - bomb.position.y
+                        ) <
+                        projectile.radius + bomb.radius &&
+                        !bomb.active
+                        ) {
+                        projectiles.splice(index, 1)
+                        bomb.explode()
+                        }
+                    }
+
+
+                // if projectile touches powerUp, remove projectile
+                for (let j = powerUps.length - 1; j >= 0; j--) {
+                    const powerUp = powerUps[j]
+              
+                    if (
+                      Math.hypot(
+                        projectile.position.x - powerUp.position.x,
+                        projectile.position.y - powerUp.position.y
+                      ) <
+                      projectile.radius + powerUp.radius
+                    ) {
+                      projectiles.splice(index, 1)
+                      powerUps.splice(j, 1)
+                      player.powerUp = 'MachineGun'
+                    //   console.log(player.powerUp)
+                      console.log('powerup started')
+                      audio.bonus.play()
+              
+                      setTimeout(() => {
+                        player.powerUp = null
+                        console.log('powerup ended')
+                      }, 5000)
+                    }
+                  }
+                              
+
+
+                // garbage collection of projectiles
+                if (projectile.position.y + projectile.radius <= 0) {
+                    setTimeout(() => {
+                        projectiles.splice(index, 1)
+                    }, 0)
+                } else {
+                projectile.update()
+                }
+            })
+
+
+            // spawns powerUps
+            if (runningRNG > 99970) {
+
+                powerUps.push(new PowerUp({
+                    position: {
+                        x: (Math.random() * 150) / scalingRatioWidth,
+                        y: (Math.random() * 150) / scalingRatioWidth
+                    },
+                    velocity: {
+                        x: (Math.random() * 3) / scalingRatioWidth,
+                        y: (Math.random() * .5) / scalingRatioWidth 
+                    }
+                    }))
+            }
+
+            
+
+            grids.forEach((grid, gridIndex) => {
+                grid.update()
+
+                // spawning projectiles
+                if (frames % (100) == 0 && grid.invaders.length >0) {
+                    grid.invaders[Math.floor(Math.random() * grid.invaders.length)].shoot(invaderProjectiles)    
+                }
+
+                grid.invaders.forEach((invader, i) => {
+                    invader.update({velocity: grid.velocity})
+
+                    for (let j = bombs.length - 1; j >= 0; j--) {
+                        const bomb = bombs[j]
+                
+                        const invaderRadius = 30
+                
+                        // if bomb touches invader, remove invader
+                        if (
+                          Math.hypot(
+                            invader.position.x - bomb.position.x,
+                            invader.position.y - bomb.position.y
+                          ) <
+                            invaderRadius + bomb.radius &&
+                          bomb.active
+                        ) {
+                          score += 50
+                          scoreEl.innerHTML = score
+
+                          playerDeaths = playerDeaths - 2
+                          if (playerDeaths < 0) {
+                            playerDeaths = 0
+                          }
+
+                          const scoreLabel = document.createElement('label')
+                          scoreLabel.innerHTML = 50
+                          scoreLabel.style.position = 'absolute'
+                          scoreLabel.style.color = 'white'
+                          scoreLabel.style.top = invader.position.y + 'px'
+                          scoreLabel.style.left = invader.position.x + 'px' 
+                          document.querySelector('#parentDiv').appendChild(scoreLabel)
+
+                          gsap.to(scoreLabel, {
+                              opacity: 0
+                          })
+
+                          grid.invaders.splice(i, 1)
+                          createParticles({
+                            object: invader,
+                            fades: true
+                          })
+                        }
+                      }
+                      
+
+                    // projectiles hit enemy
+                    projectiles.forEach((projectile, j) => {
+                        if (projectile.position.y - projectile.radius <= invader.position.y + invader.height
+                            && projectile.position.x + projectile.radius >= invader.position.x
+                            && projectile.position.x - projectile.radius <= invader.position.x + invader.width
+                            && projectile.position.y + projectile.radius >= invader.position.y  && (frames%3)) {
+                                
+                                setTimeout(() => {
+                                const invaderFound = grid.invaders.find(invader2 => invader2 == invader)
+                                const projectileFound = projectiles.find(projectile2 => projectile2 == projectile)
+                                
+                                // remove invader and projectile
+                                if (invaderFound && projectileFound) {
+                                    invaderFound.hp -= 1
+
+
+                                    // set particle color for each enemy
+                                    if (invader.src == 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/invaders/invader.png') {
+                                        particleColor = '#BAA0DE'
+                                    }
+                                    if (invader.src == 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/invaders/invader01.png'){
+                                        particleColor = '#1EDC12'
+                                    } 
+                                    if (invader.src == 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/invaders/invader02.png') {
+                                        particleColor = '#FA65D6'
+                                    } 
+                                    if (invader.src == 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/invaders/invader03.png') {
+                                        particleColor = '#D52E1A'
+                                    }
+                                    if (invader.src == 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/invaders/invader05.png') {
+                                        particleColor = 'yellow'
+                                    }
+                                    if (invader.src == 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/random/healthpack.png') {
+                                        particleColor = 'white'
+                                    }
+                                    
+                                    createParticles({
+                                        object: invader,
+                                        fades: true,
+                                        color: particleColor
+
+                                    })
+
+
+                                    // decides score to give based on which enemy the player shot
+                                    if (invaderFound.hp <= 0 || invaderFound.src == 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/invaders/invader03.png') {
+                                        projectiles.splice(j, 1)
+                                        audio.shoot.play()
+
+
+                                        if (invaderFound.hp <= 0) {
+                                            grid.invaders.splice(i, 1)
+                                            if (invaderFound.src == 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/invaders/invader03.png' && invaderFound.hp <= 0 ) {
+                                                score += 5000
+                                                scoreEl.innerHTML = score
+                                                audio.explode.play()
+
+                                                const scoreLabel = document.createElement('label')
+                                                scoreLabel.innerHTML = 5000
+                                                scoreLabel.style.position = 'absolute'
+                                                scoreLabel.style.color = 'white'
+                                                scoreLabel.style.top = invader.position.y + 'px'
+                                                scoreLabel.style.left = invader.position.x + 'px' 
+                                                document.querySelector('#parentDiv').appendChild(scoreLabel)
+                
+                                                gsap.to(scoreLabel, {
+                                                    opacity: 0
+                                                })
+                
+                                            }
+                                        }
+
+                                        if (invaderFound.src == 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/invaders/invader02.png') {
+                                            score += 300
+                                            scoreEl.innerHTML = score
+
+                                            const scoreLabel = document.createElement('label')
+                                            scoreLabel.innerHTML = 300
+                                            scoreLabel.style.position = 'absolute'
+                                            scoreLabel.style.color = 'white'
+                                            scoreLabel.style.top = invader.position.y + 'px'
+                                            scoreLabel.style.left = invader.position.x + 'px' 
+                                            document.querySelector('#parentDiv').appendChild(scoreLabel)
+            
+                                            gsap.to(scoreLabel, {
+                                                opacity: 0
+                                            })
+            
+                                        }
+
+                                        if (invaderFound.src == 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/invaders/invader01.png') {
+                                            score += 200
+                                            scoreEl.innerHTML = score
+
+                                            const scoreLabel = document.createElement('label')
+                                            scoreLabel.innerHTML = 200
+                                            scoreLabel.style.position = 'absolute'
+                                            scoreLabel.style.color = 'white'
+                                            scoreLabel.style.top = invader.position.y + 'px'
+                                            scoreLabel.style.left = invader.position.x + 'px' 
+                                            document.querySelector('#parentDiv').appendChild(scoreLabel)
+            
+                                            gsap.to(scoreLabel, {
+                                                opacity: 0
+                                            })
+            
+
+                                        }
+
+                                        if (invaderFound.src == 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/invaders/invader.png' 
+                                        || invaderFound.src == 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/invaders/invader05.png') {
+                                            score += 100
+                                            scoreEl.innerHTML = score
+
+                                            const scoreLabel = document.createElement('label')
+                                            scoreLabel.innerHTML = 100
+                                            scoreLabel.style.position = 'absolute'
+                                            scoreLabel.style.color = 'white'
+                                            scoreLabel.style.top = invader.position.y + 'px'
+                                            scoreLabel.style.left = invader.position.x + 'px' 
+                                            document.querySelector('#parentDiv').appendChild(scoreLabel)
+            
+                                            gsap.to(scoreLabel, {
+                                                opacity: 0
+                                            })
+            
+
+            
+                                        }
+
+                                        if (invaderFound.src == 'https://raw.githubusercontent.com/ETHinvaders/ETHinvader_Files/main/random/healthpack.png' && playerDeaths > 0) {
+                                            playerDeaths -= 25
+                                            if (playerDeaths <= 0) {
+                                                playerDeaths = 0
+                                            }
+                                            audio.bonus.play()
+                                        }   
+
+                                        if (grid.invaders.length > 0) {
+                                            const firstInvader = grid.invaders[0]
+                                            const lastInvader = grid.invaders[grid.invaders.length - 1]
+
+                                            grid.width = lastInvader.position.x - firstInvader.position.x + lastInvader.width
+                                            grid.position.x = firstInvader.position.x
+                                        } else {
+                                            grids.splice(gridIndex, 1)
+                                        }
+                                    }
+                                }
+                            }, 0)
+                        }
+                    })
+                })
+            })
+
+
+            // key presses to set velocity
+            if (keys.a.pressed && player.position.x >= 0 || moveLeft == 'true' && player.position.x >= 0) {
+                player.velocity.x = -5 / scalingRatioWidth
+                player.rotation = -.15      
+            } else if (keys.d.pressed && player.position.x + player.width <= canvas.width || moveRight == 'true' && player.position.x + player.width <= canvas.width) {
+                player.velocity.x = 5 / scalingRatioWidth
+                player.rotation = .15      
+            } else {
+                player.velocity.x = 0
+                player.rotation = 0
+            }
+
+            // spawning enemies at randomInterval
+            if (frames % randomInterval == 0) {
+                grids.push(new Grid())
+                randomInterval = Math.floor((Math.random() * 800) + 300)
+                frames = 0
+            }
+
+            if (keys.space.pressed && player.powerUp == 'MachineGun' && frames % 5)
+            projectiles.push(
+                new Projectile({
+                    position: {
+                        x: player.position.x + player.width/2,
+                        y: player.position.y
+                    },
+                    velocity: {
+                        x: 0,
+                        y: -10 / scalingRatioWidth
+                    },
+                    color: 'yellow'
+                })
+            )
+
+
+/* 
+            addEventListener("touchmove", e => {
+                // console.log('moving')
+            });
+
+            addEventListener("touchend", e => {
+                // console.log('end')
+            }); 
+
+            addEventListener("mouseup", e => {
+                // console.log(e)
+            });
+
+            addEventListener("click", e => {
+                // console.log(e)
+            }); */
+ 
+            frames++
+
+            if (keys.m.pressed == true) {
+                console.log('muted')
+                // mutePage();
+                Howler.volume(0.0)
+            }
+
+
+
+
+            if (paused == 'false') {
+                runningRNG = Math.floor(Math.random() * 100000)
+            } else {
+                runningRNG = 0
+            }
+
+
+            if (paused == 'false' && keys.p.pressed) {
+                paused = 'true'
+            }
+
+        }
+
+        let keyHeld = 0 
+
+        document.querySelector('#spaceInvaders').addEventListener('click', () => {
+            audio.backgroundMusic.play()
+            audio.start.play()
+          
+            document.querySelector('#startScreen').style.display = 'none'
+            document.querySelector('#scoreContainer').style.display = 'block'
+            init()
+            animate() // starts game
+          })
+          
+        document.querySelector('#restartButton').addEventListener('click', () => {
+            audio.select.play()
+            document.querySelector('#restartScreen').style.display = 'none'
+            init()
+            animate() // starts game
+          })
+
+        addEventListener('keydown', ({key}) => {
+            if (game.over) return
+
+            switch (key) {
+                case 'm':     
+                    if (keys.m.pressed = false)
+                        keys.m.pressed == true
+                    if (keys.m.pressed = true) 
+                        keys.m.pressed == false
+                    break
+                case 'p':     
+                    keys.p.pressed = true
+                    break
+                case 'a':     
+                    keys.a.pressed = true
+                    break
+                case 'd':     
+                    keys.d.pressed = true
+                    break
+                case ' ': 
+                    keys.space.pressed = true
+                    if (player.powerUp == 'MachinGun') return
+                    if (keyHeld <10) {
+                    projectiles.push(
+                        new Projectile({
+                            position: {
+                                x: player.position.x + player.width/2,
+                                y: player.position.y
+                            },
+                            velocity: {
+                                x: 0,
+                                y: -10 / scalingRatioWidth
+                            }
+                        })
+                    )
+                    keyHeld += 1
+                    }
+                    break
+
+            }
+        })
+
+        addEventListener('keyup', ({key}) => {
+            switch (key) {
+                case 'a':     
+                    keys.a.pressed = false
+                    break
+                case 'd':     
+                    keys.d.pressed = false
+                    break
+                case ' ':     
+                    keys.space.pressed = false
+
+                    keyHeld = 0
+                    break
+                case 'p':     
+                    keys.p.pressed = false
+                    break                 
+            }
+        })
+
+        addEventListener('touchstart', e => {
+                console.log(e.changedTouches[0].screenX)
+                keyPressed = 'true'
+                pressCordinates = e.changedTouches[0].screenX / canvas.width 
+
+                if(pressCordinates >= .6 && keyPressed == 'true') {
+                    moveRight = 'true'
+                }
+                if(pressCordinates <= .3 && keyPressed == 'true') {
+                    moveLeft = 'true'
+                }
+                console.log(pressCordinates)
+                addEventListener("touchend", e => {
+                    keyPressed = 'false'
+                    moveRight = 'false'
+                    moveLeft = 'false'
+            }); 
+        });
+    </script>
+  </div>
+
+</body>
+</html>
+
